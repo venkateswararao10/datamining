@@ -1,0 +1,102 @@
+############################### decision tree
+library(rpart)
+library(rpart.plot)
+library(caret)
+df<-iris
+target=factor(df$Species)
+df$Species=as.numeric(target)
+df
+sample=sample(c(TRUE,FALSE),size = nrow(df),replace = TRUE,prob=c(0.7,0.3))
+train=df[sample, ]
+test=df[!sample, ]
+dim(train)
+dtc=rpart(Species~.,method = 'class',data = train)
+rpart.plot(dtc,3,)
+y_pred=predict(dtc,test,'class')
+confusionMatrix(y_pred,factor(test$Species))
+
+##########################apriori
+# Create a sample transactional dataset
+transactions <- list(
+  c("bread", "milk", "diapers"),
+  c("bread", "milk"),
+  c("bread", "butter"),
+  c("milk", "butter"),
+  c("bread", "milk", "diapers"),
+  c("bread", "milk"),
+  c("bread", "butter"),
+  c("milk", "butter")
+)
+
+# Find the maximum length of transactions
+max_length <- max(lengths(transactions))
+
+# Pad transactions to ensure equal lengths
+padded_transactions <- lapply(transactions, function(x) {
+  length_diff <- max_length - length(x)
+  c(x, rep(NA, length_diff))
+})
+
+# Convert to a matrix and transpose
+transactions_matrix <- t(sapply(padded_transactions, function(x) unlist(x)))
+
+# Write transactions to a CSV file
+write.csv(transactions_matrix, file = "transactions.csv", row.names = FALSE)
+
+# Load the arules package
+library(arules)
+
+# Sample transactional data (replace this with your data)
+transactions <- read.transactions(file = "transactions.csv", format = "basket", sep = ",")
+
+# Find frequent itemsets using Apriori algorithm
+frequent_itemsets <- apriori(transactions, parameter = list(support = 0.1, confidence = 0.5))
+
+# Show the discovered frequent itemsets
+inspect(frequent_itemsets)
+
+###################naivebayes
+
+library('e1071')
+df1<-iris
+target=factor(df1$Species)
+print(as.numeric(target))
+df1$Species=as.numeric(target)
+sample_indices <- sample(c(TRUE,FALSE),size = nrow(df),replace = TRUE,prob=c(0.7,0.3)) #sample(1:nrow(iris), 0.7 * nrow(iris))
+train=df1[sample_indices,]
+test=df1[!sample_indices,]
+model=naiveBayes(Species~.,train)
+y_pred=predict(model,test)
+print(mean(y_pred==test$Species))
+
+#####################apriori in python
+from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import association_rules
+import pandas as pd
+
+# Create a sample dataframe (replace this with your dataset)
+data = {'TransactionID': [1, 1, 2, 2, 2, 3],
+        'Items': [['Milk', 'Bread', 'Eggs'],
+                  ['Bread', 'Eggs', 'Cheese'],
+                  ['Milk', 'Bread', 'Eggs', 'Cheese'],
+                  ['Bread', 'Eggs', 'Cheese'],
+                  ['Bread', 'Milk', 'Cheese'],
+                  ['Milk', 'Bread', 'Eggs']]}
+
+df = pd.DataFrame(data)
+
+# Convert the list of items to a one-hot encoded format
+oht = df['Items'].str.join('|').str.get_dummies()
+
+# Apply Apriori algorithm
+frequent_itemsets = apriori(oht, min_support=0.1, use_colnames=True)
+
+# Find association rules
+association_rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.5)
+
+# Display frequent itemsets and association rules
+print("Frequent Itemsets:")
+print(frequent_itemsets)
+print("\nAssociation Rules:")
+print(association_rules)
+
